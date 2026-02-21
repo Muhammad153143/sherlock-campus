@@ -12,14 +12,20 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
 app.use(helmet({
-    contentSecurityPolicy: false, // Disable CSP for simplicity in demo
+    contentSecurityPolicy: false,
     crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
-app.use(cors());
-app.use(express.json());
 
+app.use(cors({
+  origin: [
+    "https://sherlock-frontend.vercel.app",
+    "http://localhost:3000"
+  ],
+  credentials: true
+}));
+
+app.use(express.json());
 // Rate Limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
@@ -70,7 +76,7 @@ mongoose.connect(process.env.MONGO_URI)
                     'Environment': 'Production'
                 },
                 actionText: 'Go to Dashboard',
-                actionUrl: 'http://localhost:5000'
+                actionUrl: 'https://sherlock-lost-and-found.onrender.com'
             },
             type: 'system_notification',
             triggeredBy: null
