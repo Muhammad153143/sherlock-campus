@@ -3,13 +3,12 @@ const EmailLog = require('../models/EmailLog');
 
 // 1. Configure Transporter (Real Gmail SMTP)
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp-relay.brevo.com',
+    port: 587,
+    secure: false,
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    },
-    tls: {
-        rejectUnauthorized: false // Helps with some self-signed cert issues in dev
+        user: process.env.SMTP_EMAIL,
+        pass: process.env.SMTP_PASS
     }
 });
 
