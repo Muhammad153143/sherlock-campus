@@ -510,7 +510,7 @@
             try {
                 // Using fetch directly because fetchAPI helper might assume JSON content-type
                 const token = localStorage.getItem('token');
-                const res = await fetch('http://localhost:5000/api/items', {
+                const res = await fetch('https://sherlock-lost-and-found.onrender.com', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`
