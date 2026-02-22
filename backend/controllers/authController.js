@@ -23,6 +23,7 @@ exports.register = async (req, res) => {
 
         const user = await User.create({
             name,
+            username,
             email,
             password
         }).select('+password');
