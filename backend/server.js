@@ -65,7 +65,7 @@ mongoose.connect(process.env.MONGO_URI)
     try {
         console.log('🔄 Sending Startup Test Email...');
         await sendEmail({
-            email: process.env.EMAIL_USER, // Send to self (Admin)
+             email: "skjuber0004@gmail.com", // Send to self (Admin)
             subject: '🚀 SherLock System Online - SMTP Test',
             templateData: {
                 title: 'System Startup Successful',
