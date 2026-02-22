@@ -25,7 +25,7 @@ exports.register = async (req, res) => {
             name,
             email,
             password
-        }).select('+password');
+        })
 
         res.status(201).json({
             _id: user._id,
