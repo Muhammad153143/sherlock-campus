@@ -1,6 +1,5 @@
 import os
 import io
-import json
 import torch
 import torch.nn as nn
 from torchvision import models, transforms
@@ -9,14 +8,16 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+CORS(app)
 
-# Load MobileNetV2 pre-trained on ImageNet
 model = None
 
+# ✅ LOAD MODEL ONLY WHEN NEEDED
 def load_model():
     global model
+
     if model is None:
+
         print("Loading MobileNetV2 model...")
 
         weights = models.MobileNet_V2_Weights.DEFAULT
@@ -27,89 +28,109 @@ def load_model():
                 return x
 
         model_instance.classifier = Identity()
+
         model_instance.eval()
 
         model = model_instance
-        print("Model loaded successfully.")
 
-# Define preprocessing transforms
+        print("Model loaded successfully")
+
+
+# preprocessing
 preprocess = transforms.Compose([
     transforms.Resize(256),
     transforms.CenterCrop(224),
     transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    transforms.Normalize(
+        mean=[0.485, 0.456, 0.406],
+        std=[0.229, 0.224, 0.225]
+    ),
 ])
 
-@app.route("/", methods=["GET"])
+
+# ✅ ROOT ROUTE (IMPORTANT FOR RENDER)
+@app.route("/")
 def home():
     return jsonify({
-        "message": "Sherlock AI Service Running",
-        "endpoints": ["/health", "/embed", "/similarity"]
+        "status": "ok",
+        "service": "Sherlock AI Service"
     })
-@app.route('/health', methods=['GET'])
-def health_check():
-    """Health check endpoint for backend connectivity verification"""
-    return jsonify({'status': 'ok', 'service': 'ai-service'}), 200
 
-@app.route('/embed', methods=['POST'])
-def generate_embedding():
-    if 'image' not in request.files:
-        return jsonify({'error': 'No image provided'}), 400
-    
-    file = request.files['image']
+
+# ✅ HEALTH ROUTE (FAST RESPONSE — NO MODEL LOAD)
+@app.route("/health")
+def health():
+
+    return jsonify({
+        "status": "ok"
+    })
+
+
+# ✅ EMBEDDING ROUTE (MODEL LOAD HERE ONLY)
+@app.route("/embed", methods=["POST"])
+def embed():
+
+    if "image" not in request.files:
+        return jsonify({"error": "No image"}), 400
+
     try:
-        img_bytes = file.read()
-        img = Image.open(io.BytesIO(img_bytes))
-        if img.mode != 'RGB':
-            img = img.convert('RGB')
-        
-        input_tensor = preprocess(img)
-        input_batch = input_tensor.unsqueeze(0) # create a mini-batch as expected by the model
+
         load_model()
+
+        image = Image.open(request.files["image"])
+
+        if image.mode != "RGB":
+            image = image.convert("RGB")
+
+        tensor = preprocess(image)
+
+        tensor = tensor.unsqueeze(0)
+
         with torch.no_grad():
-            embedding = model(input_batch)
-        
-        # embedding is a tensor of shape (1, 1280)
+
+            embedding = model(tensor)
+
         vector = embedding[0].tolist()
-        return jsonify({'embedding': vector})
-    except Exception as e:
-        print(f"Error generating embedding: {e}")
-        return jsonify({'error': str(e)}), 500
 
-@app.route('/similarity', methods=['POST'])
-def compute_similarity():
+        return jsonify({"embedding": vector})
+
+    except Exception as e:
+
+        print(e)
+
+        return jsonify({"error": str(e)}), 500
+
+
+# similarity route
+@app.route("/similarity", methods=["POST"])
+def similarity():
+
     data = request.json
-    if not data or 'target' not in data or 'candidates' not in data:
-        return jsonify({'error': 'Invalid input. Expecting target and candidates'}), 400
-    
-    try:
-        target = torch.tensor(data['target'])
-        candidates = torch.tensor(data['candidates'])
-        
-        # Cosine Similarity
-        # torch.nn.functional.cosine_similarity
-        
-        if len(candidates) == 0:
-            return jsonify({'scores': []})
 
-        # Ensure target is (1, D)
-        if target.dim() == 1:
-            target = target.unsqueeze(0)
-            
-        # Candidates should be (N, D)
-        if candidates.dim() == 1:
-            candidates = candidates.unsqueeze(0)
-            
-        # Compute similarity
-        # dim=1 means compute across the feature dimension
-        scores = torch.nn.functional.cosine_similarity(target, candidates, dim=1)
-        
-        return jsonify({'scores': scores.tolist()})
-    except Exception as e:
-        print(f"Error computing similarity: {e}")
-        return jsonify({'error': str(e)}), 500
+    target = torch.tensor(data["target"])
+    candidates = torch.tensor(data["candidates"])
 
-if __name__ == '__main__':
+    if target.dim() == 1:
+        target = target.unsqueeze(0)
+
+    scores = torch.nn.functional.cosine_similarity(
+        target,
+        candidates,
+        dim=1
+    )
+
+    return jsonify({
+        "scores": scores.tolist()
+    })
+
+
+if __name__ == "__main__":
+
     port = int(os.environ.get("PORT", 10000))
-    print(f"Starting AI Service on port {port}...")
-    app.run(host='0.0.0.0', port=port)
+
+    print("Starting AI Service...")
+
+    app.run(
+        host="0.0.0.0",
+        port=port
+    )
