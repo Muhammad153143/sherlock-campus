@@ -15,7 +15,15 @@ async function fetchAPI(endpoint, options = {}) {
         headers
     });
 
-    const data = await response.json();
+    const text = await response.text();   // 👈 get raw response first
+
+    let data;
+    try {
+        data = JSON.parse(text);          // 👈 try converting to JSON
+    } catch (err) {
+        console.error("Server returned non-JSON:", text);
+        throw new Error("Server error. Please try again.");
+    }
 
     if (!response.ok) {
         throw new Error(data.message || 'Something went wrong');
