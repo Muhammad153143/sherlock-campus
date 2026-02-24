@@ -27,13 +27,14 @@ app.use(cors({
 
 app.use(express.json());
 // Rate Limiting
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per windowMs
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 500,
     standardHeaders: true,
     legacyHeaders: false,
 });
-app.use(limiter);
+
+app.use('/api', apiLimiter);
 
 // Serve static files (uploads)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
