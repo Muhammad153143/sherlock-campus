@@ -284,9 +284,14 @@
                     <tr>
                         <td>
                             <img src="${item.imageUrl 
-? 'https://sherlock-lost-and-found.onrender.com/' + item.imageUrl
-: 'data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 width=%27150%27 height=%27150%27><rect width=%27100%25%27 height=%27100%25%27 fill=%27%23eef2f7%27/><text x=%2750%25%27 y=%2750%25%27 dominant-baseline=%27middle%27 text-anchor=%27middle%27 fill=%27%237f8c8d%27 font-size=%2714%27>No Image</text></svg>'}"
-class="table-thumb"
+? const BASE_URL = "https://sherlock-lost-and-found.onrender.com";
+
+const imageUrl = item.imageUrl
+    ? (item.imageUrl.startsWith("http")
+        ? item.imageUrl
+        : BASE_URL + item.imageUrl)
+    : 'data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27><rect width=%27100%25%27 height=%27100%25%27 fill=%27%23eef2f7%27/><text x=%2750%25%27 y=%2750%25%27 dominant-baseline=%27middle%27 text-anchor=%27middle%27 fill=%27%237f8c8d%27 font-size=%2718%27>No Image</text></svg>';
+<img src="${imageUrl}" class="table-thumb">
 onclick="viewImage('${item._id}')"
 alt="Item">
                         </td>
@@ -405,9 +410,14 @@ alt="Item">
                     <tr>
                         <td>
                           <img src="${item.imageUrl 
-? 'https://sherlock-lost-and-found.onrender.com/' + item.imageUrl 
-: 'data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27><rect width=%27100%25%27 height=%27100%25%27 fill=%27%23eef2f7%27/><text x=%2750%25%27 y=%2750%25%27 dominant-baseline=%27middle%27 text-anchor=%27middle%27 fill=%27%237f8c8d%27 font-size=%2718%27>No Image</text></svg>'}" 
-                                 class="table-thumb" 
+const BASE_URL = "https://sherlock-lost-and-found.onrender.com";
+
+const imageUrl = item.imageUrl
+    ? (item.imageUrl.startsWith("http")
+        ? item.imageUrl
+        : BASE_URL + item.imageUrl)
+    : 'data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27><rect width=%27100%25%27 height=%27100%25%27 fill=%27%23eef2f7%27/><text x=%2750%25%27 y=%2750%25%27 dominant-baseline=%27middle%27 text-anchor=%27middle%27 fill=%27%237f8c8d%27 font-size=%2718%27>No Image</text></svg>';
+<img src="${imageUrl}" class="table-thumb"> 
                                  onclick="viewImage('${item._id}')"
                                  alt="Item">
                         </td>
@@ -447,9 +457,14 @@ alt="Item">
                 <div>
                     <h3>${item.title}</h3>
                     <img src="${item.imageUrl 
-? 'https://sherlock-lost-and-found.onrender.com/' + item.imageUrl 
-: 'data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 width=%27400%27 height=%27400%27><rect width=%27100%25%27 height=%27100%25%27 fill=%27%23eef2f7%27/><text x=%2750%25%27 y=%2750%25%27 dominant-baseline=%27middle%27 text-anchor=%27middle%27 fill=%27%237f8c8d%27 font-size=%2720%27>No Image</text></svg>'}"
-style="max-width:100%;max-height:400px;">
+? const BASE_URL = "https://sherlock-lost-and-found.onrender.com";
+
+const imageUrl = item.imageUrl
+    ? (item.imageUrl.startsWith("http")
+        ? item.imageUrl
+        : BASE_URL + item.imageUrl)
+    : 'data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27><rect width=%27100%25%27 height=%27100%25%27 fill=%27%23eef2f7%27/><text x=%2750%25%27 y=%2750%25%27 dominant-baseline=%27middle%27 text-anchor=%27middle%27 fill=%27%237f8c8d%27 font-size=%2718%27>No Image</text></svg>';
+<img src="${imageUrl}" class="table-thumb">
                     <p style="margin-top: 1rem;">Status: <span class="badge ${item.status}">${item.status.toUpperCase()}</span></p>
                 </div>
             `;
@@ -511,9 +526,14 @@ style="max-width:100%;max-height:400px;">
                 <div style="flex: 1; min-width: 250px;">
                     <h3>Original: ${item.title}</h3>
                    <img src="${item.imageUrl 
-? 'https://sherlock-lost-and-found.onrender.com/' + item.imageUrl 
-: 'data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27><rect width=%27100%25%27 height=%27100%25%27 fill=%27%23eef2f7%27/><text x=%2750%25%27 y=%2750%25%27 dominant-baseline=%27middle%27 text-anchor=%27middle%27 fill=%27%237f8c8d%27 font-size=%2718%27>No Image</text></svg>'}"
-style="width: 100%; height: 300px; object-fit: cover; border-radius: 10px; border: 3px solid var(--primary-color);">
+?const BASE_URL = "https://sherlock-lost-and-found.onrender.com";
+
+const imageUrl = item.imageUrl
+    ? (item.imageUrl.startsWith("http")
+        ? item.imageUrl
+        : BASE_URL + item.imageUrl)
+    : 'data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27><rect width=%27100%25%27 height=%27100%25%27 fill=%27%23eef2f7%27/><text x=%2750%25%27 y=%2750%25%27 dominant-baseline=%27middle%27 text-anchor=%27middle%27 fill=%27%237f8c8d%27 font-size=%2718%27>No Image</text></svg>';
+<img src="${imageUrl}" class="table-thumb">
                     <p>Type: ${item.type}</p>
                 </div>
                 <div style="display: flex; align-items: center; font-size: 2rem;">🆚</div>
