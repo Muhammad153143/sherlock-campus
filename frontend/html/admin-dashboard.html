@@ -478,13 +478,19 @@ style="max-width:100%;max-height:400px;">
             imageContent.innerHTML = `
                 <div style="flex: 1; min-width: 250px;">
                     <h3>Original: ${item.title}</h3>
-                    <img src="${item.imageUrl || 'data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27><rect width=%27100%25%27 height=%27100%25%27 fill=%27%23eef2f7%27/><text x=%2750%25%27 y=%2750%25%27 dominant-baseline=%27middle%27 text-anchor=%27middle%27 fill=%27%237f8c8d%27 font-size=%2718%27 font-family=%27Segoe UI, Arial%27>No Image</text></svg>'}" style="width: 100%; height: 300px; object-fit: cover; border-radius: 10px; border: 3px solid var(--primary-color);">
+                   <img src="${item.imageUrl 
+? 'https://sherlock-lost-and-found.onrender.com/' + item.imageUrl.replace(/^\/+/, '') 
+: 'data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27><rect width=%27100%25%27 height=%27100%25%27 fill=%27%23eef2f7%27/><text x=%2750%25%27 y=%2750%25%27 dominant-baseline=%27middle%27 text-anchor=%27middle%27 fill=%27%237f8c8d%27 font-size=%2718%27>No Image</text></svg>'}"
+style="width: 100%; height: 300px; object-fit: cover; border-radius: 10px; border: 3px solid var(--primary-color);">
                     <p>Type: ${item.type}</p>
                 </div>
                 <div style="display: flex; align-items: center; font-size: 2rem;">🆚</div>
                 <div style="flex: 1; min-width: 250px;">
                     <h3>Match: ${match.title}</h3>
-                    <img src="${match.imageUrl || 'data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27><rect width=%27100%25%27 height=%27100%25%27 fill=%27%23eef2f7%27/><text x=%2750%25%27 y=%2750%25%27 dominant-baseline=%27middle%27 text-anchor=%27middle%27 fill=%27%237f8c8d%27 font-size=%2718%27 font-family=%27Segoe UI, Arial%27>No Image</text></svg>'}" style="width: 100%; height: 300px; object-fit: cover; border-radius: 10px; border: 3px solid var(--success);">
+                 <img src="${match.imageUrl 
+? 'https://sherlock-lost-and-found.onrender.com/' + match.imageUrl.replace(/^\/+/, '') 
+: 'data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27><rect width=%27100%25%27 height=%27100%25%27 fill=%27%23eef2f7%27/><text x=%2750%25%27 y=%2750%25%27 dominant-baseline=%27middle%27 text-anchor=%27middle%27 fill=%27%237f8c8d%27 font-size=%2718%27>No Image</text></svg>'}"
+style="width: 100%; height: 300px; object-fit: cover; border-radius: 10px; border: 3px solid var(--success);">
                     <p>Type: ${match.type}</p>
                 </div>
             `;
