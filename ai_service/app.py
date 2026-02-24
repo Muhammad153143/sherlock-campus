@@ -12,13 +12,25 @@ CORS(app)
 
 model = None
 
-# ✅ LOAD MODEL ONLY WHEN NEEDED
+# PREPROCESS
+preprocess = transforms.Compose([
+    transforms.Resize(256),
+    transforms.CenterCrop(224),
+    transforms.ToTensor(),
+    transforms.Normalize(
+        mean=[0.485, 0.456, 0.406],
+        std=[0.229, 0.224, 0.225]
+    ),
+])
+
+
+# LOAD MODEL ONLY WHEN USED
 def load_model():
     global model
 
     if model is None:
 
-        print("Loading MobileNetV2 model...")
+        print("Loading MobileNetV2...")
 
         weights = models.MobileNet_V2_Weights.DEFAULT
         model_instance = models.mobilenet_v2(weights=weights)
@@ -36,41 +48,31 @@ def load_model():
         print("Model loaded successfully")
 
 
-# preprocessing
-preprocess = transforms.Compose([
-    transforms.Resize(256),
-    transforms.CenterCrop(224),
-    transforms.ToTensor(),
-    transforms.Normalize(
-        mean=[0.485, 0.456, 0.406],
-        std=[0.229, 0.224, 0.225]
-    ),
-])
-
-
-# ✅ ROOT ROUTE (IMPORTANT FOR RENDER)
-@app.route("/")
+# ROOT ROUTE (REQUIRED FOR RENDER)
+@app.route("/", methods=["GET"])
 def home():
+
     return jsonify({
         "status": "ok",
-        "service": "Sherlock AI Service"
-    })
+        "service": "Sherlock AI Service Running"
+    }), 200
 
 
-# ✅ HEALTH ROUTE (FAST RESPONSE — NO MODEL LOAD)
-@app.route("/health")
+# HEALTH ROUTE (CRITICAL)
+@app.route("/health", methods=["GET"])
 def health():
 
     return jsonify({
-        "status": "ok"
-    })
+        "status": "healthy"
+    }), 200
 
 
-# ✅ EMBEDDING ROUTE (MODEL LOAD HERE ONLY)
+# EMBEDDING ROUTE
 @app.route("/embed", methods=["POST"])
 def embed():
 
     if "image" not in request.files:
+
         return jsonify({"error": "No image"}), 400
 
     try:
@@ -90,9 +92,9 @@ def embed():
 
             embedding = model(tensor)
 
-        vector = embedding[0].tolist()
-
-        return jsonify({"embedding": vector})
+        return jsonify({
+            "embedding": embedding[0].tolist()
+        })
 
     except Exception as e:
 
@@ -101,7 +103,7 @@ def embed():
         return jsonify({"error": str(e)}), 500
 
 
-# similarity route
+# SIMILARITY ROUTE
 @app.route("/similarity", methods=["POST"])
 def similarity():
 
@@ -124,11 +126,12 @@ def similarity():
     })
 
 
+# IMPORTANT FOR RENDER
 if __name__ == "__main__":
 
     port = int(os.environ.get("PORT", 10000))
 
-    print("Starting AI Service...")
+    print("Starting Sherlock AI Service...")
 
     app.run(
         host="0.0.0.0",
