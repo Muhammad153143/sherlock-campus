@@ -291,18 +291,11 @@
                     return `
                     <tr>
                         <td>
-                            <img src="${item.imageUrl 
-? const BASE_URL = "https://sherlock-lost-and-found.onrender.com";
-
-const imageUrl = item.imageUrl
-    ? (item.imageUrl.startsWith("http")
-        ? item.imageUrl
-        : BASE_URL + item.imageUrl)
-    : 'data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27><rect width=%27100%25%27 height=%27100%25%27 fill=%27%23eef2f7%27/><text x=%2750%25%27 y=%2750%25%27 dominant-baseline=%27middle%27 text-anchor=%27middle%27 fill=%27%237f8c8d%27 font-size=%2718%27>No Image</text></svg>';
-<img src="${imageUrl}" class="table-thumb">
-onclick="viewImage('${item._id}')"
-alt="Item">
-                        </td>
+    <img src="${getImageUrl(item.imageUrl)}"
+         class="table-thumb"
+         onclick="viewImage('${item._id}')"
+         alt="Item">
+</td>
                         <td>${new Date(item.date).toLocaleDateString()}</td>
                         <td><span class="badge ${item.type}">${item.type.toUpperCase()}</span></td>
                         <td>${itemDetails}</td>
@@ -334,114 +327,6 @@ alt="Item">
         const imageActions = document.getElementById('imageModalActions');
         let allItemsCache = []; // To easily find items for comparison without refetching
 
-        // Update loadDashboard to cache items
-        const originalLoadDashboard = loadDashboard;
-        loadDashboard = async function() {
-            try {
-                const items = await fetchAPI('/items/admin');
-                allItemsCache = items; // Cache for local lookups
-                
-                // ... (rest of the logic copied from above, but we can't easily inject it into the middle of the function via search/replace)
-                // Instead, let's just rely on the SearchReplace above which REPLACED the map logic. 
-                // We need to make sure 'items' variable is accessible or passed.
-                // The SearchReplace above replaced the innerHTML part. 
-                // Wait, I need to make sure allItemsCache is populated. 
-                // The previous SearchReplace just modified the HTML generation.
-                // Let's modify the fetch part in the next tool call to be safe or just re-fetch in viewImage.
-                // Actually, let's just re-implement viewImage to find from DOM or fetch individual if needed, 
-                // but since we have the full list in 'items' inside loadDashboard, we can't access it outside easily unless we move it to global scope.
-                
-                // Let's assume for now I will use findItemById helper or just fetch again for simplicity if I can't access scope.
-                // But wait, I can just change the variable definition in loadDashboard to be global? No, that's messy.
-                // Let's just fetch the item by ID in viewImage.
-                
-                // Re-running the UI logic part of loadDashboard:
-                const total = items.length;
-                const pending = items.filter(i => i.status === 'pending').length;
-                const verified = items.filter(i => i.status === 'verified').length;
-                const matched = items.filter(i => i.status === 'resolved' || i.status === 'matched').length;
-                const rejected = items.filter(i => i.status === 'rejected').length;
-
-                document.getElementById('total-items').textContent = total;
-                document.getElementById('pending-items').textContent = pending;
-                document.getElementById('verified-items').textContent = verified;
-                document.getElementById('matched-items').textContent = matched;
-
-                if (total > 0) {
-                    document.getElementById('chart-pending').style.width = (pending / total * 100) + '%';
-                    document.getElementById('chart-verified').style.width = (verified / total * 100) + '%';
-                    document.getElementById('chart-resolved').style.width = (matched / total * 100) + '%';
-                    document.getElementById('chart-rejected').style.width = (rejected / total * 100) + '%';
-                }
-
-                const tbody = document.querySelector('#items-table tbody');
-                if (items.length === 0) {
-                     tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No reports found.</td></tr>';
-                     return;
-                }
-                
-                tbody.innerHTML = items.map(item => {
-                    const studentInfo = `
-                        <strong>${item.studentName || item.user?.name || 'N/A'}</strong><br>
-                        <small>${item.rollNumber || ''}</small><br>
-                        <small>${item.branch || ''}</small><br>
-                        <small>📞 ${item.contactInfo || 'N/A'}</small><br>
-                        <a href="mailto:${item.studentEmail || item.user?.email}" style="font-size:0.8rem; color:var(--primary-color);">${item.studentEmail || item.user?.email}</a>
-                    `;
-
-                    const itemDetails = `
-                        <strong>${item.title}</strong><br>
-                        <small>🎨 ${item.color}</small><br>
-                        <small>📍 ${item.location}</small><br>
-                        ${item.verificationQuestions && item.verificationQuestions.length > 0 ? 
-                          `<small style="display: block; margin-top: 5px; padding: 5px; background: #f0f8ff; border-left: 3px solid var(--primary-color);">
-                             <strong>🔐 Verification Questions:</strong><br>
-                             ${item.verificationQuestions.map((q, i) => `Q${i+1}: ${q}`).join('<br>')}
-                           </small>` : 
-                          '<small style="color: #888;">No verification questions</small>'}
-                    `;
-
-                    let matchesHtml = 'None';
-                    if (item.potentialMatches && item.potentialMatches.length > 0) {
-                        matchesHtml = item.potentialMatches.map(m => `
-                            <div style="background:#f0f3f8; padding:5px; margin-bottom:5px; border-radius:5px; font-size:0.85rem;">
-                                <strong>${m.title}</strong> (${m.type})<br>
-                                <button class="action-btn btn-match" onclick="compareImages('${item._id}', '${m._id}')">🔍 Compare & Match</button>
-                            </div>
-                        `).join('');
-                    }
-                    if (item.matchedWith) {
-                        matchesHtml = `<span class="badge resolved">Matched with: ${item.matchedWith.title}</span>`;
-                    }
-
-                    return `
-                    <tr>
-                        <td>
-    <img src="${getImageUrl(item.imageUrl)}"
-         class="table-thumb"
-         onclick="viewImage('${item._id}')"
-         alt="Item">
-</td>
-                        <td>${new Date(item.date).toLocaleDateString()}</td>
-                        <td><span class="badge ${item.type}">${item.type.toUpperCase()}</span></td>
-                        <td>${itemDetails}</td>
-                        <td>${studentInfo}</td>
-                        <td><span class="badge ${item.status}">${item.status.toUpperCase()}</span></td>
-                        <td>${matchesHtml}</td>
-                        <td>
-                            ${item.status === 'pending' ? `<button class="action-btn btn-verify" onclick="updateStatus('${item._id}', 'verified')">Verify</button>` : ''}
-                            ${item.status === 'verified' && !item.matchedWith ? `<button class="action-btn btn-resolve" onclick="updateStatus('${item._id}', 'resolved')">Manual Resolve</button>` : ''}
-                            <button class="action-btn btn-email" onclick="openEmailModal('${item.studentEmail || item.user?.email || ''}', 'Update regarding your lost item: ${item.title}')">📧 Email</button>
-                            <button class="action-btn btn-reject" onclick="deleteItem('${item._id}')">🗑</button>
-                        </td>
-                    </tr>
-                    `;
-                }).join('');
-                
-                if(currentSearchTerm) filterTable();
-
-            } catch(e) { console.error(e); }
-        }
 
         async function getItemById(id) {
             // Helper since we don't have a direct API for one item yet or just use the admin list
@@ -458,14 +343,6 @@ alt="Item">
                 <div>
                     <h3>${item.title}</h3>
                    <img src="${getImageUrl(item.imageUrl)}" style="width:300px;"> 
-? const BASE_URL = "https://sherlock-lost-and-found.onrender.com";
-
-const imageUrl = item.imageUrl
-    ? (item.imageUrl.startsWith("http")
-        ? item.imageUrl
-        : BASE_URL + item.imageUrl)
-    : 'data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27><rect width=%27100%25%27 height=%27100%25%27 fill=%27%23eef2f7%27/><text x=%2750%25%27 y=%2750%25%27 dominant-baseline=%27middle%27 text-anchor=%27middle%27 fill=%27%237f8c8d%27 font-size=%2718%27>No Image</text></svg>';
-<img src="${imageUrl}" class="table-thumb">
                     <p style="margin-top: 1rem;">Status: <span class="badge ${item.status}">${item.status.toUpperCase()}</span></p>
                 </div>
             `;
@@ -492,14 +369,6 @@ const imageUrl = item.imageUrl
     const itemImage = getImageUrl(item.imageUrl);
     const matchImage = getImageUrl(match.imageUrl);
 
-    const itemImage = item.imageUrl.startsWith("http")
-        ? item.imageUrl
-        : BASE_URL + item.imageUrl;
-
-    const matchImage = match.imageUrl.startsWith("http")
-        ? match.imageUrl
-        : BASE_URL + match.imageUrl;
-
     imageContent.innerHTML = `
         <div style="flex:1;">
             <h3>${item.title}</h3>
@@ -522,38 +391,6 @@ const imageUrl = item.imageUrl
     imageModal.style.display = 'block';
 }
 
-   
-
-            imageContent.innerHTML = `
-                <div style="flex: 1; min-width: 250px;">
-                    <h3>Original: ${item.title}</h3>
-                   <img src="${item.imageUrl 
-?const itemImage = getImageUrl(item.imageUrl);
-const matchImage = getImageUrl(match.imageUrl);
-
-const imageUrl = item.imageUrl
-    ? (item.imageUrl.startsWith("http")
-        ? item.imageUrl
-        : BASE_URL + item.imageUrl)
-    : 'data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27><rect width=%27100%25%27 height=%27100%25%27 fill=%27%23eef2f7%27/><text x=%2750%25%27 y=%2750%25%27 dominant-baseline=%27middle%27 text-anchor=%27middle%27 fill=%27%237f8c8d%27 font-size=%2718%27>No Image</text></svg>';
-<img src="${imageUrl}" class="table-thumb">
-                    <p>Type: ${item.type}</p>
-                </div>
-                <div style="display: flex; align-items: center; font-size: 2rem;">🆚</div>
-                <div style="flex: 1; min-width: 250px;">
-                    <h3>Match: ${match.title}</h3>
-                
-
-                    <p>Type: ${match.type}</p>
-                </div>
-            `;
-
-            imageActions.innerHTML = `
-                <button class="action-btn btn-match" style="padding: 1rem 2rem; font-size: 1.2rem;" onclick="confirmMatch('${item._id}', '${match._id}'); closeImageModal();">✅ Confirm Match</button>
-            `;
-
-            imageModal.style.display = 'block';
-        }
 
         function closeImageModal() {
             imageModal.style.display = 'none';
