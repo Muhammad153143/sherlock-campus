@@ -70,6 +70,7 @@ const generateEmailTemplate = (data) => {
 };
 
 // 3. Verify Connection (Exported for server.js)
+// 3. Verify Connection (Exported for server.js)
 const verifyConnection = async () => {
     try {
         if (!process.env.SMTP_EMAIL || !process.env.SMTP_PASS) {
@@ -77,7 +78,14 @@ const verifyConnection = async () => {
             return false;
         }
 
-        await transporter.verify();
+        // Add timeout protection so it doesn't hang on Render
+        const verifyPromise = transporter.verify();
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("SMTP verification timeout")), 5000)
+        );
+
+        await Promise.race([verifyPromise, timeoutPromise]);
+
         console.log("✅ Gmail SMTP Connected Successfully");
         return true;
 
