@@ -1,18 +1,7 @@
-const nodemailer = require('nodemailer');
+const axios = require('axios');
 const EmailLog = require('../models/EmailLog');
 
-// 1. Configure Transporter (Real Gmail SMTP)
-const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
-    auth: {
-        user: process.env.SMTP_EMAIL,
-        pass: process.env.SMTP_PASS
-    }
-});
-
-// 2. HTML Template Generator
+// 1. HTML Template Generator (UNCHANGED STRUCTURE)
 const generateEmailTemplate = (data) => {
     const { title, name, details, actionUrl, actionText } = data;
     
@@ -46,22 +35,22 @@ const generateEmailTemplate = (data) => {
                 <div class="item-card">
                     <h3>Item Details</h3>
                     <table class="details-table">
-                        ${Object.entries(details).map(([key, value]) => `
+                        ${details ? Object.entries(details).map(([key, value]) => `
                             <tr>
                                 <td>${key}</td>
                                 <td>${value}</td>
                             </tr>
-                        `).join('')}
+                        `).join('') : ''}
                     </table>
                 </div>
 
                 ${actionUrl ? `<div style="text-align: center;"><a href="${actionUrl}" class="btn">${actionText || 'View Details'}</a></div>` : ''}
                 
-                <p>If you have any questions, please reply to this email or visit the Admin Office.</p>
+                <p>If you have any questions, please visit the Admin Office.</p>
             </div>
             <div class="footer">
                 <p>&copy; ${new Date().getFullYear()} SherLock Smart Campus System. All rights reserved.</p>
-                <p>This is an automated message. Please do not reply directly unless instructed.</p>
+                <p>This is an automated message.</p>
             </div>
         </div>
     </body>
@@ -69,41 +58,24 @@ const generateEmailTemplate = (data) => {
     `;
 };
 
-// 3. Verify Connection (Exported for server.js)
-// 3. Verify Connection (Exported for server.js)
+// 2. Dummy verifyConnection (kept for structure compatibility)
 const verifyConnection = async () => {
-    try {
-        if (!process.env.SMTP_EMAIL || !process.env.SMTP_PASS) {
-            console.log("⚠️ Gmail credentials not set. Email disabled.");
-            return false;
-        }
-
-        // Add timeout protection so it doesn't hang on Render
-        const verifyPromise = transporter.verify();
-        const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("SMTP verification timeout")), 5000)
-        );
-
-        await Promise.race([verifyPromise, timeoutPromise]);
-
-        console.log("✅ Gmail SMTP Connected Successfully");
-        return true;
-
-    } catch (error) {
-        console.log("⚠️ Gmail verification failed:", error.message);
-        return false; // Do NOT crash server
+    if (!process.env.BREVO_API_KEY) {
+        console.log("⚠️ BREVO_API_KEY not set");
+        return false;
     }
+
+    console.log("✅ Brevo API configured");
+    return true;
 };
 
-// 4. Send Email Function
+// 3. Send Email Function
 const sendEmail = async (options) => {
-    // options: { email, subject, templateData, message, type, triggeredBy, attachments }
-    
     let htmlContent;
+
     if (options.templateData) {
         htmlContent = generateEmailTemplate(options.templateData);
     } else if (options.message) {
-        // Simple HTML wrapper for raw message
         htmlContent = `
         <div style="font-family: Arial, sans-serif; padding: 20px;">
             <h2>${options.subject}</h2>
@@ -115,39 +87,45 @@ const sendEmail = async (options) => {
         throw new Error('Email content missing (provide templateData or message)');
     }
 
-    const mailOptions = {
-        from: `"${process.env.FROM_NAME}" <${process.env.FROM_EMAIL}>`,
-        to: options.email,
-        subject: options.subject,
-        html: htmlContent,
-        attachments: options.attachments || [] // Support for attachments
-    };
-
     try {
-        // Log attempt
         console.log(`📨 Attempting to send email to: ${options.email}`);
-        
-        const info = await transporter.sendMail(mailOptions);
-        
-        console.log(`✅ Email Sent! Message ID: ${info.messageId}`);
-        
-        // Log to DB (Non-blocking/Safe)
+
+        const response = await axios.post(
+            'https://api.brevo.com/v3/smtp/email',
+            {
+                sender: {
+                    name: process.env.FROM_NAME || 'SherLock System',
+                    email: process.env.FROM_EMAIL
+                },
+                to: [{ email: options.email }],
+                subject: options.subject,
+                htmlContent: htmlContent
+            },
+            {
+                headers: {
+                    'api-key': process.env.BREVO_API_KEY,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+
+        console.log(`✅ Email Sent via Brevo. Message ID: ${response.data.messageId}`);
+
         EmailLog.create({
             recipient: options.email,
             subject: options.subject,
             messageType: options.type || 'notification',
             status: 'sent',
             triggeredBy: options.triggeredBy,
-            messageId: info.messageId,
+            messageId: response.data.messageId || null,
             error: null
-        }).catch(err => console.error('⚠️ Warning: Failed to save email log to DB:', err.message));
+        }).catch(err => console.error('⚠️ Email log save failed:', err.message));
 
-        return { success: true, messageId: info.messageId };
+        return { success: true };
 
     } catch (error) {
-        console.error('❌ Email Send Failed:', error);
-        
-        // Log failure to DB (Safe)
+        console.error('❌ Brevo Email Send Failed:', error.response?.data || error.message);
+
         EmailLog.create({
             recipient: options.email,
             subject: options.subject,
@@ -156,9 +134,8 @@ const sendEmail = async (options) => {
             triggeredBy: options.triggeredBy,
             messageId: null,
             error: error.message
-        }).catch(err => console.error('⚠️ Warning: Failed to save email error log:', err.message));
+        }).catch(err => console.error('⚠️ Email log save failed:', err.message));
 
-        // THROW error so controller knows it failed
         throw error;
     }
 };
