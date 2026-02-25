@@ -155,13 +155,13 @@ exports.createItem = async (req, res) => {
         console.log('📝 POST /api/items - Creating new item');
         console.log('📝 User:', req.user?.id);
         console.log('📝 Body:', JSON.stringify(req.body, null, 2));
-        console.log('📝 File:', req.file ? req.file.filename : 'No file');
+        console.log('📝 File:', req.file ? req.file.path : 'No file');
         
-        let imageUrl;
-        
-        if (req.file) {
-            imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
-        }
+       let imageUrl = null;
+
+     if (req.file) {
+       imageUrl = req.file.path;   // Cloudinary gives full URL here
+  }
 
         const itemData = {
             ...req.body,
@@ -401,20 +401,15 @@ exports.updateItemStatus = async (req, res) => {
                 const lostItem = item.type === 'lost' ? item : matchedItem;
                 const foundItem = item.type === 'found' ? item : matchedItem;
 
-                // Prepare attachments if image exists
+// Prepare attachments if image exists
                 const attachments = [];
-                // Only attach if it's a real file upload (starts with http)
-                if (foundItem.imageUrl && foundItem.imageUrl.startsWith('http')) {
-                    // Convert URL to local path for reliable sending
-                    // imageUrl format: http://host/uploads/filename.jpg
-                    const filename = foundItem.imageUrl.split('/').pop();
-                    const localPath = path.join(__dirname, '../uploads', filename);
 
-                    attachments.push({
-                        filename: filename,
-                        path: localPath 
-                    });
-                }
+        if (foundItem.imageUrl && foundItem.imageUrl.startsWith('http')) {
+    attachments.push({
+        filename: 'found-item.jpg',
+        path: foundItem.imageUrl
+    });
+}
 
                 if (lostItem.studentEmail) {
                     try {
