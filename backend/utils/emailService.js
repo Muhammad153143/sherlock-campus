@@ -3,13 +3,12 @@ const EmailLog = require('../models/EmailLog');
 
 // 1. Configure Transporter (Real Gmail SMTP)
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
     auth: {
         user: process.env.SMTP_EMAIL,
         pass: process.env.SMTP_PASS
-    },
-    tls: {
-        rejectUnauthorized: false // Helps with some self-signed cert issues in dev
     }
 });
 
@@ -72,24 +71,19 @@ const generateEmailTemplate = (data) => {
 
 // 3. Verify Connection (Exported for server.js)
 const verifyConnection = async () => {
-    // STRICT MODE: Fail if credentials are missing
-    if (!process.env.SMTP_EMAIL || !process.env.SMTP_PASS) {
-        console.error('❌ FATAL ERROR: Missing SMTP_EMAIL or SMTP_PASS in .env');
-        console.error('   You must provide Real Gmail Credentials to start the server.');
-        return false;
-    }
-
-    console.log(`📧 Email Mode: ${process.env.EMAIL_MODE || 'production'}`);
-
     try {
+        if (!process.env.SMTP_EMAIL || !process.env.SMTP_PASS) {
+            console.log("⚠️ Gmail credentials not set. Email disabled.");
+            return false;
+        }
+
         await transporter.verify();
-        console.log(`✅ SMTP Server Connection Verified (User: ${process.env.SMTP_EMAIL})`);
+        console.log("✅ Gmail SMTP Connected Successfully");
         return true;
+
     } catch (error) {
-        console.error('❌ SMTP Connection Failed:', error.message);
-        console.error('   Ensure you are using a Gmail App Password (NOT your login password).');
-        console.error('   See: https://support.google.com/accounts/answer/185833');
-        return false; 
+        console.log("⚠️ Gmail verification failed:", error.message);
+        return false; // Do NOT crash server
     }
 };
 
