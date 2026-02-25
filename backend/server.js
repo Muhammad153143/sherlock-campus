@@ -10,7 +10,7 @@ const { initAIService } = require('./utils/aiService');
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 587;
 
 app.use(helmet({
     contentSecurityPolicy: false,
