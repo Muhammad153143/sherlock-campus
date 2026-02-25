@@ -1,104 +1,49 @@
-const axios = require('axios');
-const EmailLog = require('../models/EmailLog');
+const nodemailer = require("nodemailer");
 
-// HTML Template
-const generateEmailTemplate = (data = {}) => {
-    const { title, name, details = {}, actionUrl, actionText } = data;
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT),
+  secure: false,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS
+  }
+});
 
-    return `
-    <div style="font-family: Arial; padding:20px;">
-        <h2>Hello ${name || 'Student'},</h2>
-        <p>${title || ''}</p>
-        <ul>
-            ${Object.entries(details).map(([key, value]) =>
-                `<li><strong>${key}:</strong> ${value}</li>`
-            ).join('')}
-        </ul>
-        ${
-            actionUrl
-                ? `<a href="${actionUrl}" style="background:#27ae60;color:#fff;padding:10px 15px;text-decoration:none;border-radius:5px;">
-                    ${actionText || 'View Details'}
-                  </a>`
-                : ''
-        }
-        <hr>
-        <small>© ${new Date().getFullYear()} SherLock System</small>
-    </div>
-    `;
-};
+exports.sendEmail = async ({
+  email,
+  subject,
+  message,
+  templateData,
+  type,
+  triggeredBy,
+  attachments
+}) => {
+  try {
+    const mailOptions = {
+      from: `"Sherlock Lost & Found" <${process.env.SMTP_USER}>`,
+      to: email,
+      subject: subject,
+      html: message
+        ? `<p>${message}</p>`
+        : `
+          <h2>${templateData?.title || "Sherlock Notification"}</h2>
+          <p>Hello ${templateData?.name || "Student"},</p>
+          <p>${templateData?.title}</p>
+          <hr/>
+          <p>Please visit the admin office.</p>
+        `,
+      attachments: attachments || []
+    };
 
-// Verify API Key
-const verifyConnection = async () => {
-    if (!process.env.BREVO_API_KEY) {
-        console.error('❌ Missing BREVO_API_KEY');
-        return false;
-    }
+    const info = await transporter.sendMail(mailOptions);
 
-    console.log('✅ Brevo API Ready');
-    return true;
-};
+    console.log("✅ Email sent:", info.messageId);
 
-// Send Email
-const sendEmail = async (options) => {
-    try {
-        const htmlContent = options.templateData
-            ? generateEmailTemplate(options.templateData)
-            : `<div>
-                <h2>${options.subject}</h2>
-                <p>${options.message || ''}</p>
-               </div>`;
+    return info;
 
-        const response = await axios.post(
-            'https://api.brevo.com/v3/smtp/email',
-            {
-                sender: {
-                    name: process.env.FROM_NAME,
-                    email: process.env.FROM_EMAIL
-                },
-                to: [{ email: options.email }],
-                subject: options.subject,
-                htmlContent: htmlContent
-            },
-            {
-                headers: {
-                    'api-key': process.env.BREVO_API_KEY,
-                    'Content-Type': 'application/json'
-                }
-            }
-        );
-
-        console.log('✅ Email Sent:', response.data.messageId);
-
-        await EmailLog.create({
-            recipient: options.email,
-            subject: options.subject,
-            messageType: options.type || 'notification',
-            status: 'sent',
-            triggeredBy: options.triggeredBy,
-            messageId: response.data.messageId,
-            error: null
-        });
-
-        return { success: true };
-
-    } catch (error) {
-        console.error('❌ Email Send Failed:', error.response?.data || error.message);
-
-        await EmailLog.create({
-            recipient: options.email,
-            subject: options.subject,
-            messageType: options.type || 'notification',
-            status: 'failed',
-            triggeredBy: options.triggeredBy,
-            messageId: null,
-            error: error.message
-        });
-
-        throw error;
-    }
-};
-
-module.exports = {
-    sendEmail,
-    verifyConnection
+  } catch (error) {
+    console.error("❌ Email sending failed:", error);
+    throw error;
+  }
 };
