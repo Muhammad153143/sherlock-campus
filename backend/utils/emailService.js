@@ -5,8 +5,8 @@ const EmailLog = require('../models/EmailLog');
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+        user: process.env.SMTP_EMAIL,
+        pass: process.env.SMTP_PASS
     },
     tls: {
         rejectUnauthorized: false // Helps with some self-signed cert issues in dev
@@ -73,8 +73,8 @@ const generateEmailTemplate = (data) => {
 // 3. Verify Connection (Exported for server.js)
 const verifyConnection = async () => {
     // STRICT MODE: Fail if credentials are missing
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-        console.error('❌ FATAL ERROR: Missing EMAIL_USER or EMAIL_PASS in .env');
+    if (!process.env.SMTP_EMAIL || !process.env.SMTP_PASS) {
+        console.error('❌ FATAL ERROR: Missing SMTP_EMAIL or SMTP_PASS in .env');
         console.error('   You must provide Real Gmail Credentials to start the server.');
         return false;
     }
@@ -83,7 +83,7 @@ const verifyConnection = async () => {
 
     try {
         await transporter.verify();
-        console.log(`✅ SMTP Server Connection Verified (User: ${process.env.EMAIL_USER})`);
+        console.log(`✅ SMTP Server Connection Verified (User: ${process.env.SMTP_EMAIL})`);
         return true;
     } catch (error) {
         console.error('❌ SMTP Connection Failed:', error.message);
