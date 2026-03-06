@@ -101,6 +101,9 @@ mongoose.connect(process.env.MONGO_URI)
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/items', require('./routes/itemRoutes'));
+app.get('/reset-password/:token', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/html/reset-password.html'));
+});
 
 // Test Route
 app.get('/', (req, res) => {
