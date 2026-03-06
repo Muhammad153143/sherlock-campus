@@ -89,38 +89,53 @@ exports.getMe = async (req, res) => {
     }
 };
 
-exports.forgotPassword = async (req, res) => {
-    const { email } = req.body;
+exports.forgotPassword = async (req, res, next) => {
     try {
+
+        const { email } = req.body;
+
         const user = await User.findOne({ email });
+
         if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+            return res.status(404).json({
+                message: "User not found"
+            });
         }
-        const resetToken = crypto.randomBytes(20).toString('hex');
-        const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-        user.resetPasswordToken = hashedToken;
+
+        // create reset token
+        const resetToken = crypto.randomBytes(32).toString("hex");
+
+        user.resetPasswordToken = crypto
+            .createHash("sha256")
+            .update(resetToken)
+            .digest("hex");
+
         user.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
-        await user.save();
-        const actionUrl = `https://sherlock-lost-and-found.onrender.com/reset-password.html?token=${resetToken}`;
+
+        await user.save({ validateBeforeSave: false });
+
+        const resetUrl = `${process.env.FRONTEND_URL}/reset-password.html?token=${resetToken}`;
+
         await sendEmail({
             email: user.email,
-            subject: 'SherLock Password Reset',
+            subject: "Password Reset - SherLock",
             templateData: {
-                title: 'You requested a password reset',
+                title: "Reset your password",
                 name: user.name,
-                details: {
-                    Email: user.email,
-                    Expires: '10 minutes'
-                },
-                actionText: 'Reset Password',
-                actionUrl
+                actionText: "Reset Password",
+                actionUrl: resetUrl
             },
-            type: 'password_reset',
-            triggeredBy: user._id
+            type: "password_reset"
         });
-        res.status(200).json({ message: 'Password reset email sent' });
+
+        res.status(200).json({
+            success: true,
+            message: "Reset email sent"
+        });
+
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error(error);
+        next(error);
     }
 };
 
