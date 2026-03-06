@@ -1,5 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const crypto = require('crypto');
+const { sendEmail } = require('../utils/emailService');
 
 // Generate JWT
 const generateToken = (id) => {
@@ -82,6 +84,69 @@ exports.getMe = async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
         res.status(200).json(user);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.forgotPassword = async (req, res) => {
+    const { email } = req.body;
+    try {
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        const resetToken = crypto.randomBytes(20).toString('hex');
+        const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+        user.resetPasswordToken = hashedToken;
+        user.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
+        await user.save();
+        const actionUrl = `https://sherlock-lost-and-found.onrender.com/reset-password.html?token=${resetToken}`;
+        await sendEmail({
+            email: user.email,
+            subject: 'SherLock Password Reset',
+            templateData: {
+                title: 'You requested a password reset',
+                name: user.name,
+                details: {
+                    Email: user.email,
+                    Expires: '10 minutes'
+                },
+                actionText: 'Reset Password',
+                actionUrl
+            },
+            type: 'password_reset',
+            triggeredBy: user._id
+        });
+        res.status(200).json({ message: 'Password reset email sent' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.resetPassword = async (req, res) => {
+    const { token } = req.params;
+    const { password, confirmPassword } = req.body;
+    try {
+        if (!password || !confirmPassword) {
+            return res.status(400).json({ message: 'Password and confirm password required' });
+        }
+        if (password !== confirmPassword) {
+            return res.status(400).json({ message: 'Passwords do not match' });
+        }
+        const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+        const user = await User.findOne({
+            resetPasswordToken: hashedToken,
+            resetPasswordExpire: { $gt: Date.now() }
+        }).select('+password');
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid or expired token' });
+        }
+        user.password = password;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpire = undefined;
+        await user.save();
+        res.status(200).json({ message: 'Password updated successfully' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
