@@ -18,12 +18,15 @@ app.use(helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
+const cors = require("cors");
+
 app.use(cors({
-  origin: [
-    "https://sherlock-frontend.vercel.app",
-    "http://localhost:3000"
-  ],
-  credentials: true
+    origin: [
+        "https://sherlock-lost-and-found1.vercel.app",
+        "http://localhost:3000"
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true
 }));
 
 app.use(express.json());
