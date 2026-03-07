@@ -11,7 +11,7 @@ const EmailLogSchema = new mongoose.Schema({
     },
     messageType: {
         type: String,
-        enum: ['match_notification', 'status_update', 'admin_manual', 'verification', 'system_notification'],
+        enum: ['match_notification', 'status_update', 'admin_manual', 'verification', 'system_notification', 'password_reset'],
         default: 'status_update'
     },
     status: {
