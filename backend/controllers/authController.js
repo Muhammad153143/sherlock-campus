@@ -111,9 +111,10 @@ exports.forgotPassword = async (req, res) => {
 
         user.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
 
-        await user.save();
+        await user.save({ validateBeforeSave: false });
 
-        const resetURL = `https://sherlock-lost-and-founddd.vercel.app/reset-password.html?token=${resetToken}`;
+        const resetURL =
+`https://sherlock-lost-and-founddd.vercel.app/reset-password.html?token=${resetToken}`;
 
         await sendEmail({
             email: user.email,
