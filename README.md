@@ -52,7 +52,7 @@ Sherlock/
 │  ├─ test_full_system.js     # Full workflow test
 │  └─ test_image_upload.js    # Image upload test
 └─ frontend/
-   ├─ html/                   # index.html, login.html, register.html,
+   ├─                         # index.html, login.html, register.html,
    │                          # report-item.html, admin-dashboard.html, my-reports.html
    ├─ css/                    # style.css
    └─ js/                     # app.js (auth helpers, API wrapper)
