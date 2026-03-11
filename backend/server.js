@@ -19,14 +19,28 @@ app.use(helmet({
 }));
 
 
+const allowedOrigins = [
+  "https://sherlock-lost-and-found3.vercel.app",
+  "http://localhost:3000"
+];
+
 app.use(cors({
-    origin: [
-        "https://sherlock-lost-and-found3.vercel.app",
-        "http://localhost:3000"
-    ],
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true
+  origin: function(origin, callback) {
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = "CORS policy does not allow this origin.";
+      return callback(new Error(msg), false);
+    }
+
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
+app.options('*', cors());
 
 app.use(express.json());
 // Rate Limiting
