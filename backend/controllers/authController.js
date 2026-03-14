@@ -11,7 +11,7 @@ const generateToken = (id) => {
 };
 
 // @desc    Register new user
-// @route   POST /api/auth/register
+// @route   POST /api/v1/auth/register
 // @access  Public
 exports.register = async (req, res) => {
     const { name, email, password } = req.body;
@@ -42,7 +42,7 @@ exports.register = async (req, res) => {
 };
 
 // @desc    Authenticate a user
-// @route   POST /api/auth/login
+// @route   POST /api/v1/auth/login
 // @access  Public
 exports.login = async (req, res) => {
     const { email, username, password } = req.body;
@@ -78,7 +78,7 @@ exports.login = async (req, res) => {
 };
 
 // @desc    Get user data
-// @route   GET /api/auth/me
+// @route   GET /api/v1/auth/me
 // @access  Private
 exports.getMe = async (req, res) => {
     try {
