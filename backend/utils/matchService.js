@@ -2,7 +2,7 @@ const Item = require('../models/Item');
 const axios = require('axios');
 const { buildErrorDetails } = require('../utils/aiService');
 
-const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:5001';
+const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'https://sherlock-ai-service.onrender.com';
 let aiSimilarityErrorLogged = false;
 
 const findMatches = async (newItem) => {
