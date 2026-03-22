@@ -152,7 +152,7 @@ exports.verifyClaim = async (req, res) => {
 // @access  Private
 exports.createItem = async (req, res) => {
     try {
-        console.log('📝 POST /api/items - Creating new item');
+        console.log('📝 POST /api/v1/items - Creating new item');
         console.log('📝 User:', req.user?.id);
         console.log('📝 Body:', JSON.stringify(req.body, null, 2));
         console.log('📝 File:', req.file ? req.file.path : 'No file');
