@@ -53,6 +53,7 @@ app.use(helmet({
 }));
 const allowedOrigins = [
   process.env.FRONTEND_URL,
+  "https://vvit-sherlock.vercel.app",
   "http://localhost:3000",
   "http://localhost:5000"
 ];
