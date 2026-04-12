@@ -424,7 +424,24 @@ exports.updateItemStatus = async (req, res) => {
                 const lostItem = item.type === 'lost' ? item : matchedItem;
                 const foundItem = item.type === 'found' ? item : matchedItem;
 
-                const automatedMessage = `🎉 Good News! Your Lost Item Found – SherLock\n\nFound Item: ${foundItem.title}\nLocation Found: ${foundItem.location}\nDate Found: ${new Date(foundItem.date).toLocaleDateString()}\nCategory: ${foundItem.category}\nMatch ID: #${foundItem._id.toString().slice(-6).toUpperCase()}`;
+                const automatedMessage = `
+🎉 *Good News! Your Lost Item Has Been Found – SherLock*
+
+📌 *Match Details:*
+• Found Item: ${foundItem.title}
+• Location Found: ${foundItem.location}
+• Date Found: ${new Date(foundItem.date).toLocaleDateString()}
+• Category: ${foundItem.category}
+
+🕒 *Meeting Timings:*
+Your item is ready for verification.
+Please visit the Admin Office between:
+
+⏰ 10:00 AM – 12:00 PM  
+⏰ 2:00 PM – 3:30 PM  
+
+📍 Kindly bring valid identification to claim your item.
+`;
 
                 try {
                     await Chat.create({
