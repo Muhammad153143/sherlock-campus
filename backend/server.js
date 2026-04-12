@@ -33,14 +33,28 @@ io.on('connection', (socket) => {
         console.log(`👤 User joined room: ${itemId}`);
     });
 
-    socket.on('sendMessage', async (data) => {
-        // data: { itemId, senderId, receiverId, message }
-        const { itemId, message } = data;
-        
-        // Broadcast to room
-        io.to(itemId).emit('receiveMessage', data);
-        console.log(`💬 Message sent in room ${itemId}: ${message}`);
-    });
+  socket.on('sendMessage', async (data) => {
+    try {
+        // Save message to DB
+        const savedMessage = await Chat.create({
+            itemId: data.itemId,
+            senderId: data.senderId,
+            receiverId: data.receiverId,
+            message: data.message
+        });
+
+        // Populate sender name
+        const populatedMsg = await savedMessage.populate('senderId', 'name');
+
+        // Send to room
+        io.to(data.itemId).emit('receiveMessage', populatedMsg);
+
+        console.log(`💬 Message saved & sent in room ${data.itemId}`);
+
+    } catch (err) {
+        console.error('❌ Socket message error:', err.message);
+    }
+});
 
     socket.on('disconnect', () => {
         console.log('🔌 Client disconnected');
