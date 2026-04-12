@@ -53,7 +53,7 @@ app.use(helmet({
 }));
 const allowedOrigins = [
   process.env.FRONTEND_URL,
-  "https://vvit-sherlock.vercel.app/api/v1",
+  "https://vvit-sherlock.vercel.app",
   "http://localhost:3000",
   "http://localhost:5000"
 ];
@@ -85,7 +85,7 @@ const apiLimiter = rateLimit({
 app.use('/api/v1', apiLimiter);
 
 // Serve static files (uploads)
-app.use('api/v1/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/api/v1/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Serve Frontend
 app.use(express.static(path.join(__dirname, '../frontend')));
