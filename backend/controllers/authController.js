@@ -33,17 +33,53 @@ exports.register = async (req, res) => {
         });
 
         // Send Welcome Email
-        try {
             await sendEmail({
-                email: user.email,
-                subject: 'Welcome to SherLock',
-                htmlContent: `
-                    <h1>Welcome to SherLock, ${user.name}!</h1>
-                    <p>Your account has been successfully created.</p>
-                    <p>You can now report lost or found items and communicate with other users in real-time.</p>
-                    <p>Best regards,<br>The SherLock Team</p>
-                `
-            });
+        email: user.email,
+        subject: '🎉 Welcome to SherLock - Your Smart Lost & Found Partner',
+        htmlContent: `
+        <div style="font-family: Arial, sans-serif; background-color: #f4f6f8; padding: 20px;">
+            <div style="max-width: 600px; margin: auto; background: #ffffff; border-radius: 10px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                
+                <h2 style="color: #2c3e50; text-align: center;">Welcome to SherLock 🔍</h2>
+                
+                <p style="font-size: 16px; color: #333;">
+                    Hi <strong>${user.name}</strong>,
+                </p>
+
+                <p style="font-size: 15px; color: #555;">
+                    We're excited to have you onboard! Your account has been successfully created.
+                </p>
+
+                <p style="font-size: 15px; color: #555;">
+                    With SherLock, you can:
+                </p>
+
+                <ul style="color: #555; font-size: 14px;">
+                    <li>📌 Report lost or found items easily</li>
+                    <li>🤖 Get AI-powered match suggestions</li>
+                    <li>💬 Chat with users in real-time</li>
+                    <li>🔔 Receive instant notifications</li>
+                </ul>
+
+                
+
+                
+
+                <p style="font-size: 14px; color: #333;">
+                    Best regards,<br>
+                    <strong>SherLock Team</strong>
+                </p>
+
+                <hr style="margin: 25px 0; border: none; border-top: 1px solid #ddd;" />
+
+                  <p style="text-align: center; font-size: 12px; color: #888;">
+                    This is an automated message. Please do not reply.<br>
+                    © 2026 SherLock. All rights reserved.
+                </p>
+            </div>
+        </div>
+        `
+    });
         } catch (emailError) {
             console.error('Error sending welcome email:', emailError);
             // Don't fail registration if email fails
